@@ -5,7 +5,7 @@ from functools import reduce
 import json
 
 clay = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/clay_japan.csv')
-coarse = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/Coarse_japan.csv')
+coarse = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/coarse_japan.csv')
 landcover = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/landcover_japan.csv')
 sand = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/sand_japan.csv')
 silt = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/silt_japan.csv')
@@ -38,13 +38,13 @@ def split_ugly_string(x):
 tmp = df_merged['groups'].apply(split_ugly_string)
 tmp = pd.concat(tmp.values).reset_index()
 df_merged = pd.merge(df_merged, tmp, left_index=True, right_index=True)
-land_col = ['10','20','30','40','50','60','80','90','95']
+land_col = ['10','20','30','40','50','60','70','80','90','95','100']
 df_merged[land_col] = df_merged[land_col].apply(pd.to_numeric)
 df_merged['total area'] = df_merged[land_col].sum(axis=1)
 df_merged.drop(columns=['GridID', 'HydroID','NextDownID','OBJECTID','Shape_Area','Shape_Leng','Tot_Drain_','groups','index','system:index','CatType','.geo','clay_0-5cm_mean','clay_5-15cm_mean','clay_15-30cm_mean','clay_30-60cm_mean','sand_0-5cm_mean','sand_5-15cm_mean','sand_15-30cm_mean','sand_30-60cm_mean','silt_0-5cm_mean','silt_5-15cm_mean','silt_15-30cm_mean','silt_30-60cm_mean','cfvo_0-5cm_mean','cfvo_5-15cm_mean','cfvo_15-30cm_mean','cfvo_30-60cm_mean'],inplace=True)
 df_merged.rename(columns={'mean':'average slope','max':'max slope'},inplace=True)
 
-for percentage in ['10','30','40','50','60','80','90','95']:
+for percentage in land_col:
     df_merged[str(percentage) + '%'] = df_merged[percentage] / df_merged['total area']
 
 # print(df_merged.columns)
@@ -59,6 +59,13 @@ df_merged['maxValueIndex'] = df_merged[land_col].idxmax(axis=1)
 # ohe = OneHotEncoder()
 # # new_matrix_of_ohe_vlaues = ohe.fit(df_merged['maxValueIndex'])
 # ohe.fit(df_merged['maxValueIndex'])
-# ohe.transform(df_merged['maxValueIndex'])
+# ohe.transform(df_merged['maxValueIndex'])'
+
+x = df_merged['maxValueIndex'].to_numpy()
+x = x.reshape(-1,1)
+enc = preprocessing.OneHotEncoder()
+enc.fit(x)
+onehotlabels = enc.transform(x).toarray()
+print(onehotlabels)
 
 df_merged.to_csv('/Users/jonahdundas/data/SABER/Japan/japan_stats.csv')
