@@ -1,8 +1,8 @@
-import ast
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 from functools import reduce
 import json
+import glob
 
 clay = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/clay_japan.csv')
 coarse = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/coarse_japan.csv')
@@ -11,6 +11,9 @@ sand = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/sand_japan.csv')
 silt = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/silt_japan.csv')
 average_slopes = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/slopes_japan.csv')
 max_slopes = pd.read_csv('/Users/jonahdundas/data/SABER/Japan/maxSlopes_japan.csv')
+
+# slopes_japan_1
+# pd.concat([pd.read_csv(f) for f in glob.glob('slopes_japan_*.csv')])
 
 
 data_frames = [clay, coarse, landcover, sand, silt, average_slopes,max_slopes]
@@ -56,16 +59,15 @@ df_merged['average_silt_0to60cm'] = df_merged['average_silt_0to60cm'].div(1000)
 
 df_merged['maxValueIndex'] = df_merged[land_col].idxmax(axis=1)
 
-# ohe = OneHotEncoder()
-# # new_matrix_of_ohe_vlaues = ohe.fit(df_merged['maxValueIndex'])
-# ohe.fit(df_merged['maxValueIndex'])
-# ohe.transform(df_merged['maxValueIndex'])'
-
+ohe_labels = sorted(df_merged['maxValueIndex'].unique())
 x = df_merged['maxValueIndex'].to_numpy()
 x = x.reshape(-1,1)
-enc = preprocessing.OneHotEncoder()
+enc = OneHotEncoder()
 enc.fit(x)
 onehotlabels = enc.transform(x).toarray()
-print(onehotlabels)
+ohe = pd.DataFrame(onehotlabels)
+ohe.columns = ohe_labels
+
+df_merged = pd.concat([df_merged,ohe],axis=1)
 
 df_merged.to_csv('/Users/jonahdundas/data/SABER/Japan/japan_stats.csv')
